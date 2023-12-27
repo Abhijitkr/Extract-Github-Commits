@@ -1,3 +1,4 @@
+import { useForm } from "react-hook-form";
 import "./App.css";
 import { useEffect, useState } from "react";
 
@@ -5,33 +6,42 @@ function App() {
   const [dataSet, setDataSet] = useState(null);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   // const [hasMoreData, setHasMoreData] = useState(true);
 
-  function fetchData(page) {
+  function fetchData(page, username, repo) {
     return new Promise(async (resolve, reject) => {
       try {
         const response = await fetch(
-          `https://api.github.com/repos/Abhijitkr/QuantumBazaar/commits?page=${page}&per_page=100`
+          `https://api.github.com/repos/${username}/${repo}/commits?page=${page}&per_page=100`
         );
 
-        if (response.ok) {
-          const data = await response.json();
-          setDataSet({ data });
-
-          // if (data.length < 100) {
-          //   setHasMoreData(false);
-          // }
-          resolve({ data });
-        } else {
+        if (!response.ok) {
           const error = await response.text();
-          setError(error);
-          reject(new Error(error));
+          throw new Error(`API Error: ${error}`);
         }
+        const data = await response.json();
+        setDataSet({ data });
+        resolve({ data });
+
+        // if (data.length < 100) {
+        //   setHasMoreData(false);
+        // }
       } catch (error) {
-        setError(error);
+        setError(error.message);
         reject(error);
       }
     });
+  }
+
+  function afterSubmit(GitInfo) {
+    const username = GitInfo.username;
+    const repo = GitInfo.repo;
+    fetchData(currentPage, username, repo);
   }
 
   // const loadMoreData = () => {
@@ -39,7 +49,9 @@ function App() {
   // };
 
   useEffect(() => {
-    fetchData(currentPage);
+    const username = "Abhijitkr";
+    const repo = "QuantumBazaar";
+    fetchData(currentPage, username, repo);
   }, [currentPage]);
 
   return (
@@ -49,13 +61,58 @@ function App() {
           <h1 className="text-4xl my-5 font-semibold tracking-tight text-gray-900">
             Get your Github Commits
           </h1>
-          <input
-            type="text"
-            name="api"
-            id="api"
-            className="bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4 w-1/2"
-            placeholder="API Here"
-          />
+          <form
+            noValidate
+            onSubmit={handleSubmit((GitInfo) => {
+              // e.preventDefault();
+              console.log(GitInfo);
+              afterSubmit(GitInfo);
+            })}
+            className="flex justify-around ml-12 mr-12"
+          >
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                Github Username
+              </label>
+              <input
+                type="text"
+                {...register("username", {
+                  required: "Username is required",
+                })}
+                id="username"
+                className="bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4 mb-2"
+                placeholder="Enter Github Username"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="repo"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                Github Repository
+              </label>
+              <input
+                type="text"
+                {...register("repo", {
+                  required: "Repository is required",
+                })}
+                id="repo"
+                className="bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4"
+                placeholder="Enter Github Repository"
+              />
+            </div>
+            <div className="self-center">
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-400 active:scale-95 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded items-center transition-all duration-300"
+              >
+                Button
+              </button>
+            </div>
+          </form>
 
           {error && <p>Error: {error.message}</p>}
           {/* {console.log({ dataSet })} */}
