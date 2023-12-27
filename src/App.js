@@ -5,7 +5,7 @@ function App() {
   const [dataSet, setDataSet] = useState(null);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreData, setHasMoreData] = useState(true);
+  // const [hasMoreData, setHasMoreData] = useState(true);
 
   function fetchData(page) {
     return new Promise(async (resolve, reject) => {
@@ -18,9 +18,9 @@ function App() {
           const data = await response.json();
           setDataSet({ data });
 
-          if (data.length === 0 || data.length < 100) {
-            setHasMoreData(false);
-          }
+          // if (data.length < 100) {
+          //   setHasMoreData(false);
+          // }
           resolve({ data });
         } else {
           const error = await response.text();
@@ -44,30 +44,31 @@ function App() {
 
   return (
     <div className="App">
-      <div className="w-1/2 m-auto">
-        <h1 className="text-4xl my-5 font-semibold tracking-tight text-gray-900">
-          Get your Github Commits
-        </h1>
-        <input
-          type="text"
-          name="api"
-          id="api"
-          className="bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4 w-1/2"
-          placeholder="API Here"
-        />
+      {dataSet && (
+        <div className="w-1/2 m-auto">
+          <h1 className="text-4xl my-5 font-semibold tracking-tight text-gray-900">
+            Get your Github Commits
+          </h1>
+          <input
+            type="text"
+            name="api"
+            id="api"
+            className="bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4 w-1/2"
+            placeholder="API Here"
+          />
 
-        {error && <p>Error: {error.message}</p>}
-        {/* {console.log({ dataSet })} */}
-        {dataSet && (
-          <div>
-            {dataSet.data.map((commits, index) => (
-              <a
-                href="#"
-                className="rounded-sm w-full grid grid-cols-12 bg-white shadow p-3 gap-2 items-center hover:shadow-lg transition delay-150 duration-300 ease-in-out hover:scale-105 transform mt-2 text-left"
-                key={index}
-              >
-                {/* Icon */}
-                {/* <div className="col-span-12 md:col-span-1">
+          {error && <p>Error: {error.message}</p>}
+          {/* {console.log({ dataSet })} */}
+          {dataSet && (
+            <div>
+              {dataSet.data.map((commits, index) => (
+                <a
+                  href="#"
+                  className="rounded-sm w-full grid grid-cols-12 bg-white shadow p-3 gap-2 items-center hover:shadow-lg transition delay-150 duration-300 ease-in-out hover:scale-105 transform mt-2 text-left"
+                  key={index}
+                >
+                  {/* Icon */}
+                  {/* <div className="col-span-12 md:col-span-1">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-8 w-8"
@@ -84,40 +85,48 @@ function App() {
                   </svg>
                 </div> */}
 
-                {/* Title */}
-                {/* <div className="col-span-11 xl:-ml-5">
+                  {/* Title */}
+                  {/* <div className="col-span-11 xl:-ml-5">
               <p className="text-blue-600 font-semibold">
                 {" "}
                 Deploy a Next.js App to App Platform{" "}
               </p>
             </div> */}
-                {currentPage * 100 - 100 + index + 1}
-                {/* Description */}
-                <div className="md:col-start-2 col-span-11 xl:-ml-5">
-                  <p className="text-sm text-gray-800 font-light">
-                    {commits.commit.message}
-                  </p>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
-        {/* Pagination */}
-        <div className="mt-5 mb-5 flex justify-around">
-          <button
-            onClick={() => setCurrentPage((prevPage) => prevPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous Page
-          </button>
-          <button onClick={() => setCurrentPage((prevPage) => prevPage + 1)}>
-            Next Page
-          </button>
+                  {currentPage * 100 - 100 + index + 1}
+                  {/* Description */}
+                  <div className="md:col-start-2 col-span-11 xl:-ml-5">
+                    <p className="text-sm text-gray-800 font-light">
+                      {commits.commit.message}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+          {/* Pagination */}
+          <div className="mt-5 mb-5 flex justify-around">
+            {currentPage !== 1 ? (
+              <button
+                onClick={() => setCurrentPage((prevPage) => prevPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous Page
+              </button>
+            ) : null}
+            {/* {console.log(dataSet.data.length)} */}
+            {dataSet.data.length === 100 ? (
+              <button
+                onClick={() => setCurrentPage((prevPage) => prevPage + 1)}
+              >
+                Next Page
+              </button>
+            ) : null}
 
-          {/* Load More */}
-          {/* {hasMoreData && <button onClick={loadMoreData}>Load More</button>} */}
+            {/* Load More */}
+            {/* {hasMoreData && <button onClick={loadMoreData}>Load More</button>} */}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
