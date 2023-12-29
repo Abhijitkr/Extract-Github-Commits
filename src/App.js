@@ -14,32 +14,33 @@ function App() {
   } = useForm();
   // const [hasMoreData, setHasMoreData] = useState(true);
 
-  function fetchData(page, username, repo) {
-    return new Promise(async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `https://api.github.com/repos/${username}/${repo}/commits?page=${page}&per_page=100`
-        );
+  async function fetchData(page, username, repo) {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `https://api.github.com/repos/${username}/${repo}/commits?page=${page}&per_page=100`
+      );
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(`API Error: ${error.message}`);
-        }
-        const data = await response.json();
-        setDataSet({ data });
-        setLoading(false);
-      } catch (err) {
-        console.log(err.message);
-        setError(err.message);
-        setLoading(false);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`API Error: ${error.message}`);
       }
-    });
+      const data = await response.json();
+      setDataSet({ data });
+      setError(null);
+      setLoading(false);
+    } catch (err) {
+      console.log(err.message);
+      setError(err.message);
+      setLoading(false);
+    }
   }
 
   function afterSubmit(GitInfo) {
     const username = GitInfo.username;
     const repo = GitInfo.repo;
+    //TODO: New page stays on previous page
+    // setCurrentPage(1);
     fetchData(currentPage, username, repo);
   }
 
@@ -64,7 +65,7 @@ function App() {
             noValidate
             onSubmit={handleSubmit((GitInfo) => {
               // e.preventDefault();
-              console.log(GitInfo);
+              // console.log(GitInfo);
               afterSubmit(GitInfo);
             })}
             className="w-1/2 m-auto"
@@ -163,7 +164,6 @@ function App() {
                 {currentPage !== 1 ? (
                   <button
                     onClick={() => setCurrentPage((prevPage) => prevPage - 1)}
-                    disabled={currentPage === 1}
                   >
                     Previous Page
                   </button>
