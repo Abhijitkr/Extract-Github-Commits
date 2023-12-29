@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 function App() {
   const [dataSet, setDataSet] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const {
     register,
@@ -14,26 +15,25 @@ function App() {
   // const [hasMoreData, setHasMoreData] = useState(true);
 
   function fetchData(page, username, repo) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async () => {
       try {
         const response = await fetch(
           `https://api.github.com/repos/${username}/${repo}/commits?page=${page}&per_page=100`
         );
 
         if (!response.ok) {
-          const error = await response.text();
-          throw new Error(`API Error: ${error}`);
+          const error = await response.json();
+          throw new Error(`API Error: ${error.message}`);
         }
         const data = await response.json();
         setDataSet({ data });
-        resolve({ data });
 
         // if (data.length < 100) {
         //   setHasMoreData(false);
         // }
-      } catch (error) {
-        setError(error.message);
-        reject(error);
+      } catch (err) {
+        console.log(err.message);
+        setError(err.message);
       }
     });
   }
@@ -68,7 +68,7 @@ function App() {
               console.log(GitInfo);
               afterSubmit(GitInfo);
             })}
-            className="flex justify-around ml-12 mr-12"
+            className="w-1/2 m-auto"
           >
             <div>
               <label
@@ -83,7 +83,7 @@ function App() {
                   required: "Username is required",
                 })}
                 id="username"
-                className="bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4 mb-2"
+                className="w-full bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4 mb-2"
                 placeholder="Enter Github Username"
               />
             </div>
@@ -100,23 +100,24 @@ function App() {
                   required: "Repository is required",
                 })}
                 id="repo"
-                className="bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4"
+                className="w-full bg-gray-200 border-2 border-teal-400 focus:border-teal-600 py-2 px-4"
                 placeholder="Enter Github Repository"
               />
             </div>
-            <div className="self-center">
+            <div className="mt-2">
               <button
                 type="submit"
-                className="bg-blue-500 hover:bg-blue-400 active:scale-95 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded items-center transition-all duration-300"
+                className="w-full bg-blue-500 hover:bg-blue-400 active:scale-95 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded items-center transition-all duration-300"
               >
                 Button
               </button>
             </div>
           </form>
 
-          {error && <p>Error: {error.message}</p>}
+          {error && <p className="text-red-500 mt-5">{error}</p>}
+          {loading && <p className="text-orange-500 mt-5">Loading...</p>}
           {/* {console.log({ dataSet })} */}
-          {dataSet && (
+          {dataSet && !error && (
             <div>
               {dataSet.data.map((commits, index) => (
                 <a
@@ -158,30 +159,30 @@ function App() {
                   </div>
                 </a>
               ))}
+              {/* Pagination */}
+              <div className="mt-5 mb-5 flex justify-around">
+                {currentPage !== 1 ? (
+                  <button
+                    onClick={() => setCurrentPage((prevPage) => prevPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Previous Page
+                  </button>
+                ) : null}
+                {/* {console.log(dataSet.data.length)} */}
+                {dataSet.data.length === 100 ? (
+                  <button
+                    onClick={() => setCurrentPage((prevPage) => prevPage + 1)}
+                  >
+                    Next Page
+                  </button>
+                ) : null}
+
+                {/* Load More */}
+                {/* {hasMoreData && <button onClick={loadMoreData}>Load More</button>} */}
+              </div>
             </div>
           )}
-          {/* Pagination */}
-          <div className="mt-5 mb-5 flex justify-around">
-            {currentPage !== 1 ? (
-              <button
-                onClick={() => setCurrentPage((prevPage) => prevPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous Page
-              </button>
-            ) : null}
-            {/* {console.log(dataSet.data.length)} */}
-            {dataSet.data.length === 100 ? (
-              <button
-                onClick={() => setCurrentPage((prevPage) => prevPage + 1)}
-              >
-                Next Page
-              </button>
-            ) : null}
-
-            {/* Load More */}
-            {/* {hasMoreData && <button onClick={loadMoreData}>Load More</button>} */}
-          </div>
         </div>
       )}
     </div>
