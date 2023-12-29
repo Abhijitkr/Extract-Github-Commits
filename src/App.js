@@ -17,6 +17,7 @@ function App() {
   function fetchData(page, username, repo) {
     return new Promise(async () => {
       try {
+        setLoading(true);
         const response = await fetch(
           `https://api.github.com/repos/${username}/${repo}/commits?page=${page}&per_page=100`
         );
@@ -27,13 +28,11 @@ function App() {
         }
         const data = await response.json();
         setDataSet({ data });
-
-        // if (data.length < 100) {
-        //   setHasMoreData(false);
-        // }
+        setLoading(false);
       } catch (err) {
         console.log(err.message);
         setError(err.message);
+        setLoading(false);
       }
     });
   }
